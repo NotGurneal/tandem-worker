@@ -46,13 +46,15 @@ if (-not (Test-Path $node)) {
   Move-Item (Join-Path $tmp $name) $NodeDir
 }
 
-# 2. The worker itself (latest release)
-Write-Host 'Downloading Tandem Worker...'
+# 2. The worker itself (latest release; it updates itself from here on, see worker.js checkUpdate)
+$tag = (Invoke-RestMethod "https://api.github.com/repos/$Repo/releases/latest").tag_name
+Write-Host "Downloading Tandem Worker $tag..."
 $wzip = Join-Path $tmp 'tandem-worker.zip'
 Invoke-WebRequest "https://github.com/$Repo/releases/latest/download/tandem-worker.zip" -OutFile $wzip
 Stop-Worker
 Remove-Item $AppDir -Recurse -Force -ErrorAction SilentlyContinue
 Expand-Archive $wzip -DestinationPath $AppDir -Force
+Set-Content -Path (Join-Path $Dir 'version.txt') -Value $tag -Encoding ASCII
 Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
 
 # 3. Sign in (once; only a session token is kept, in this folder)
